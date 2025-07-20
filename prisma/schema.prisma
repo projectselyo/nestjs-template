@@ -1,0 +1,146 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../generated/prisma"
+  previewFeatures = ["views"]
+}
+
+generator dbml {
+  provider = "prisma-dbml-generator"
+}
+
+// ENUMS
+enum EventType {
+  SIMPLE
+  SERIES
+  CONFERENCE
+}
+
+// MODELS
+model organization {
+  id              Int               @id @default(autoincrement())
+  name            String
+  events          event[]
+  user_membership user_membership[]
+}
+
+model event {
+  id              Int           @id @default(autoincrement())
+  organization_id Int
+  organization    organization  @relation(fields: [organization_id], references: [id])
+  event_config    event_config?
+}
+
+model event_config {
+  id        Int       @id @default(autoincrement())
+  event_id  Int       @unique
+  eventType EventType
+  event     event     @relation(fields: [event_id], references: [id])
+  booth     booth[]
+
+  badge badge[]
+
+  quest quest[]
+}
+
+model booth {
+  id              Int          @id @default(autoincrement())
+  name            String
+  event_config_id Int
+  event           event_config @relation(fields: [event_config_id], references: [id])
+
+  badge badge[]
+}
+
+model badge {
+  id              Int           @id @default(autoincrement())
+  name            String
+  event_config_id Int
+  booth_id        Int
+  booth           booth?        @relation(fields: [booth_id], references: [id])
+  event_config    event_config? @relation(fields: [event_config_id], references: [id])
+}
+
+model quest {
+  id              Int          @id @default(autoincrement())
+  name            String
+  event_config_id Int
+  event_config    event_config @relation(fields: [event_config_id], references: [id])
+}
+
+model collection {
+  id              Int        @id @default(autoincrement())
+  name            String
+  blockchain_id   Int        @unique
+  blockchain      blockchain @relation(fields: [blockchain_id], references: [id])
+  standard        String
+  metadata_object String
+  image_url       String
+
+  mint mint[]
+}
+
+model mint {
+  id            Int        @id @default(autoincrement())
+  txHash        String
+  collection_id Int
+  collection    collection @relation(fields: [collection_id], references: [id])
+}
+
+model user {
+  id              Int               @id @default(autoincrement())
+  name            String
+  email           String
+  handle          String
+  user_membership user_membership[]
+
+  wallet wallet[]
+}
+
+model user_membership {
+  user_id         Int
+  organization_id Int
+  user            user         @relation(fields: [user_id], references: [id])
+  organization    organization @relation(fields: [organization_id], references: [id])
+
+  @@id(fields: [user_id, organization_id])
+}
+
+model blockchain {
+  id         Int     @id @default(autoincrement())
+  name       String
+  is_testnet Boolean
+  rpc_url    String
+  type       String
+
+  collection collection[]
+
+  wallet wallet[]
+}
+
+model wallet {
+  id            Int        @id @default(autoincrement())
+  user_id       Int
+  derivation    String
+  pub_key       String
+  private_key   String
+  blockchain_id Int        @unique
+  blockchain    blockchain @relation(fields: [blockchain_id], references: [id])
+  user          user       @relation(fields: [user_id], references: [id])
+}
+
+model config {
+  id    Int    @id @default(autoincrement())
+  key   String
+  value String
+}

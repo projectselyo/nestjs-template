@@ -1,0 +1,146 @@
+//// ------------------------------------------------------
+//// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+//// ------------------------------------------------------
+
+Table organization {
+  id Int [pk, increment]
+  name String [not null]
+  events event [not null]
+  user_membership user_membership [not null]
+}
+
+Table event {
+  id Int [pk, increment]
+  organization_id Int [not null]
+  organization organization [not null]
+  event_config event_config
+}
+
+Table event_config {
+  id Int [pk, increment]
+  event_id Int [unique, not null]
+  eventType EventType [not null]
+  event event [not null]
+  booth booth [not null]
+  badge badge [not null]
+  quest quest [not null]
+}
+
+Table booth {
+  id Int [pk, increment]
+  name String [not null]
+  event_config_id Int [not null]
+  event event_config [not null]
+  badge badge [not null]
+}
+
+Table badge {
+  id Int [pk, increment]
+  name String [not null]
+  event_config_id Int [not null]
+  booth_id Int [not null]
+  booth booth
+  event_config event_config
+}
+
+Table quest {
+  id Int [pk, increment]
+  name String [not null]
+  event_config_id Int [not null]
+  event_config event_config [not null]
+}
+
+Table collection {
+  id Int [pk, increment]
+  name String [not null]
+  blockchain_id Int [unique, not null]
+  blockchain blockchain [not null]
+  standard String [not null]
+  metadata_object String [not null]
+  image_url String [not null]
+  mint mint [not null]
+}
+
+Table mint {
+  id Int [pk, increment]
+  txHash String [not null]
+  collection_id Int [not null]
+  collection collection [not null]
+}
+
+Table user {
+  id Int [pk, increment]
+  name String [not null]
+  email String [not null]
+  handle String [not null]
+  user_membership user_membership [not null]
+  wallet wallet [not null]
+}
+
+Table user_membership {
+  user_id Int [not null]
+  organization_id Int [not null]
+  user user [not null]
+  organization organization [not null]
+
+  indexes {
+    (user_id, organization_id) [pk]
+  }
+}
+
+Table blockchain {
+  id Int [pk, increment]
+  name String [not null]
+  is_testnet Boolean [not null]
+  rpc_url String [not null]
+  type String [not null]
+  collection collection [not null]
+  wallet wallet [not null]
+}
+
+Table wallet {
+  id Int [pk, increment]
+  user_id Int [not null]
+  derivation String [not null]
+  pub_key String [not null]
+  private_key String [not null]
+  blockchain_id Int [unique, not null]
+  blockchain blockchain [not null]
+  user user [not null]
+}
+
+Table config {
+  id Int [pk, increment]
+  key String [not null]
+  value String [not null]
+}
+
+Enum EventType {
+  SIMPLE
+  SERIES
+  CONFERENCE
+}
+
+Ref: event.organization_id > organization.id
+
+Ref: event_config.event_id - event.id
+
+Ref: booth.event_config_id > event_config.id
+
+Ref: badge.booth_id > booth.id
+
+Ref: badge.event_config_id > event_config.id
+
+Ref: quest.event_config_id > event_config.id
+
+Ref: collection.blockchain_id > blockchain.id
+
+Ref: mint.collection_id > collection.id
+
+Ref: user_membership.user_id > user.id
+
+Ref: user_membership.organization_id > organization.id
+
+Ref: wallet.blockchain_id > blockchain.id
+
+Ref: wallet.user_id > user.id
